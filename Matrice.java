@@ -1,27 +1,18 @@
-/**
- * @author Abdallah Lotfi
- *
- */
 public class Matrice {
 	public float matrice[][];
     public int lignes;
     public int colonnes;
     
     
-    /**
-     * @param lignes
-     * @param colonnes
-     */
+    
     public Matrice(int lignes, int colonnes) {
     	this.lignes = lignes;
     	this.colonnes = colonnes;
     	this.matrice = new float[lignes][colonnes];
     }
 
-    /**
-     * @param matrice
-     * 
-     */
+    
+    
     public Matrice(float [][]matrice) {
     	this.lignes = matrice.length;
     	this.colonnes = matrice[0].length;
@@ -31,32 +22,42 @@ public class Matrice {
 				this.matrice[i][j] = matrice[i][j];
     }
     
-    /**
-     * 
-     */
+    
+    
     public void afficher()
     {
-        for (int i = 0; i < this.lignes; i++) {
-            for (int j = 0; j < this.colonnes; j++) {
-            	System.out.printf(this.matrice[i][j] + "\t");
+    	System.out.println("==========================\n");
+        for (int i = 0; i < this.matrice.length; i++) {
+            for (int j = 0; j < this.matrice[0].length; j++) {
+            	System.out.print(this.matrice[i][j] + "\t");
             }
             System.out.println("\n");
         }
+        System.out.println("==========================\n");
+    }
+    
+    public void afficher(float [][]A)
+    {
+    	for (int i = 0; i < A.length; i++) {
+    		for (int j = 0; j < A[0].length; j++) {
+            	System.out.print(A[i][j] + "\t");
+            }
+            System.out.println("\n");
+        }
+    	System.out.println("===============\n");
         return;
     }
     
     public Matrice transpose() {
-		Matrice A = new Matrice(this.lignes, this.colonnes);
+		Matrice A = new Matrice(this.colonnes, this.lignes);
 		for (int i = 0; i < this.lignes; i++)
 			for (int j = 0; j < this.colonnes; j++)
 				A.matrice[j][i] = this.matrice[i][j];
 		return A;
 	}
 	
-	/**
-	 * @param size
-	 * @return
-	 */
+	
+    
 	public Matrice identite(int size) {
 		Matrice identite = new Matrice(size, size);
 		for (int j = 0; j < size; j++)
@@ -74,64 +75,23 @@ public class Matrice {
  			}
  		}
  	    
- 	    temp.afficher();
 	    return temp;
 	}
+
 	
-	/**
-	 * @param l1
-	 * @param l2
-	 */
-	public void swap_ligne(int l1, int l2) {
-		if(l1 > this.lignes || l2 > this.lignes || l1 == l2 || l1 < 0 || l2 < 0) {
-			throw new IndexOutOfBoundsException("Erreur de swap");
-		} else {
-			float []temp = this.matrice[l1];
-			this.matrice[l1] = this.matrice[l2];
-			this.matrice[l2] = temp;
-			
-		}
-	}
-	
-	/**
-	 * @param l_dest
-	 * @param facteur
-	 * @param l_source
-	 */
-	public void add_ligne(int l_dest, float facteur, int l_source) {
-		if(l_source > this.lignes || l_dest > this.lignes || l_source == l_dest || facteur == 0 || l_source < 0 || l_dest < 0) {
-			throw new IndexOutOfBoundsException("Erreur d'addition des lignes");
-		}
-		for(int i = 0; i < this.colonnes; i++) {
-			this.matrice[l_dest][i] = this.matrice[l_dest][i] + facteur * this.matrice[l_source][i];
-		}
-		
-	}
-    
-    /**
-     * @param A
-     * @param r
-     * @param s
-     * @return
-     */
-    public float[][] iter_gj(float [][]A, int r, int s){
+    public float[][] iter_gj(float [][]A, int r, int s) throws Exception {
     	
         float pivot = A[r][s];
         
-        /**
-         * divides pivot line by pivot
-         */
+        if(pivot == 0) {
+        	throw new Exception("Solution Impossible");
+        }
+        
         for(int j = 0; j < A[0].length; j++) {
             A[r][j] = A[r][j] / pivot;
         }
         
-        /**
-         * for each line
-         * 	  if line != pivot line
-         * 	  Ais = element in current line and same column as pivot
-         * 	  		for each column in current line
-         * 				multiply Ais by element in pivot line and subtract it from element in current line	
-         */
+
         for(int i = 0; i < A.length; i++) {
             if(i != r) {
                 float Ais = A[i][s];
@@ -144,4 +104,37 @@ public class Matrice {
     
         return A;
     }
+    
+    public void gaussJordanSolveEquations() throws Exception {
+    	for(int i = 0; i < this.matrice.length; i++) {
+    		this.matrice = this.iter_gj(this.matrice, i, i);
+    	}
+    }
+    
+    public void gaussJordanInverse() throws Exception {
+    	Matrice M = new Matrice(this.matrice);
+    	M = M.augmente();
+    	for(int i = 0; i < M.matrice.length; i++) {
+    		M.matrice = this.iter_gj(M.matrice, i, i);
+    	}
+    	this.matrice = M.matrice;
+    }
+    
+    public Matrice multiply(Matrice B) throws Exception {
+		if (this.colonnes != B.lignes) {
+			throw new Exception("A.colonnes doit etre égale à B.lignes");
+		}
+		
+		Matrice resultat = new Matrice(this.lignes, B.colonnes);
+		
+		for (int i = 0; i < this.lignes; i++) {
+			for (int j = 0; j < B.colonnes; j++) {
+				float sum = 0;
+				for (int k = 0; k < this.colonnes; k++)
+					sum += this.matrice[i][k] * B.matrice[k][j];
+				resultat.matrice[i][j] = sum;
+			}
+		}
+		return resultat;
+	}
 }
